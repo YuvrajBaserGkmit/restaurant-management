@@ -1,5 +1,4 @@
 'use strict';
-const { allow } = require('joi');
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class RolePermission extends Model {
@@ -34,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'RolePermission',
-      tableName: 'role_permission',
+      tableName: 'roles_permissions',
       paranoid: true,
     },
   );
