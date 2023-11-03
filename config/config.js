@@ -7,6 +7,7 @@ const {
   TEST_DATABASE,
   DB_HOST,
   DB_PORT,
+  DB_DIALECT,
 } = process.env;
 
 module.exports = {
@@ -16,7 +17,7 @@ module.exports = {
     database: DB_DATABASE,
     host: DB_HOST,
     port: DB_PORT,
-    dialect: 'postgres',
+    dialect: DB_DIALECT,
     define: {
       underscored: true,
       createdAt: 'created_at',
@@ -30,7 +31,7 @@ module.exports = {
     database: TEST_DATABASE,
     host: DB_HOST,
     port: DB_PORT,
-    dialect: 'postgres',
+    dialect: DB_DIALECT,
     define: {
       underscored: true,
       createdAt: 'created_at',
@@ -44,7 +45,7 @@ module.exports = {
     database: DB_DATABASE,
     host: DB_HOST,
     port: DB_PORT,
-    dialect: 'postgres',
+    dialect: DB_DIALECT,
     define: {
       underscored: true,
       createdAt: 'created_at',
