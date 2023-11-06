@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'address_id',
       });
       this.belongsTo(models.User, {
-        foreignKey: 'user_id',
+        foreignKey: 'owner_id',
       });
       this.hasMany(models.MenuItem, {
         foreignKey: 'restaurant_id',
@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      user_id: {
+      owner_id: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {

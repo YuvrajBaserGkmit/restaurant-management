@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'user_id',
       });
       this.hasMany(models.Restaurant, {
-        foreignKey: 'user_id',
+        foreignKey: 'owner_id',
       });
       this.hasMany(models.Rating, {
         foreignKey: 'user_id',

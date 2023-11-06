@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      user_id: {
+      owner_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
