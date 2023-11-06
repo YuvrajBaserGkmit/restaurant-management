@@ -23,12 +23,12 @@ module.exports = {
           isNumeric: true,
         },
       },
-      order_status_id: {
-        type: Sequelize.UUID,
+      order_status: {
+        type: Sequelize.ENUM,
+        values: ['received', 'cancelled', 'in process', 'prepared', 'paid'],
         allowNull: false,
-        references: {
-          key: 'id',
-          model: 'order_statuses',
+        validate: {
+          isAlpha: true,
         },
       },
       user_id: {
