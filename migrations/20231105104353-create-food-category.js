@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('menu_items', {
+    await queryInterface.createTable('food_categories', {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -13,34 +13,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      is_veg: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-      },
-      image: {
-        type: Sequelize.STRING,
-        allowNull: true,
-        validate: {
-          isUrl: true,
-        },
-      },
-      price: {
-        type: Sequelize.DOUBLE,
-        allowNull: false,
-        validate: {
-          isNumeric: true,
-        },
-      },
-      food_category_id: {
+      restaurant_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
           key: 'id',
-          model: 'food_categories',
+          model: 'restaurants',
         },
       },
       created_at: {
@@ -61,6 +39,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('menu_items');
+    await queryInterface.dropTable('food_categories');
   },
 };
