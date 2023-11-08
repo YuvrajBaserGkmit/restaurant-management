@@ -9,8 +9,8 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.Restaurant, {
         foreignKey: 'restaurant_id',
       });
-      this.hasOne(models.Cart, {
-        foreignKey: 'order_id',
+      this.belongsTo(models.Cart, {
+        foreignKey: 'cart_id',
       });
       this.hasOne(models.Payment, {
         foreignKey: 'order_id',
@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       order_status: {
         type: DataTypes.ENUM,
-        values: ['received', 'cancelled', 'in process', 'prepared', 'paid'],
+        values: ['received', 'cancelled', 'in process', 'prepared'],
         allowNull: false,
         validate: {
           isAlpha: true,
@@ -55,6 +55,14 @@ module.exports = (sequelize, DataTypes) => {
         references: {
           key: 'id',
           model: 'restaurants',
+        },
+      },
+      cart_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+          key: 'id',
+          model: 'carts',
         },
       },
     },

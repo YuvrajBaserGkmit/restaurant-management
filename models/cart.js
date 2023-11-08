@@ -6,8 +6,8 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.User, {
         foreignKey: 'user_id',
       });
-      this.belongsTo(models.Order, {
-        foreignKey: 'order_id',
+      this.hasOne(models.Order, {
+        foreignKey: 'cart_id',
       });
       this.hasMany(models.CartItem, {
         foreignKey: 'cart_id',
@@ -22,14 +22,6 @@ module.exports = (sequelize, DataTypes) => {
         references: {
           key: 'id',
           model: 'users',
-        },
-      },
-      order_id: {
-        type: DataTypes.UUID,
-        allowNull: true,
-        references: {
-          key: 'id',
-          model: 'orders',
         },
       },
     },

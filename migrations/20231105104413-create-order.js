@@ -47,6 +47,14 @@ module.exports = {
           model: 'restaurants',
         },
       },
+      cart_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          key: 'id',
+          model: 'carts',
+        },
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
