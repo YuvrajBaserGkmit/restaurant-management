@@ -9,6 +9,12 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.FoodCategory, {
         foreignKey: 'food_category_id',
       });
+      this.hasMany(models.Image, {
+        foreignKey: 'menu_item_id',
+      });
+      this.hasMany(models.CartItem, {
+        foreignKey: 'menu_item_id',
+      });
     }
   }
   MenuItem.init(
@@ -24,13 +30,6 @@ module.exports = (sequelize, DataTypes) => {
       is_veg: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-      },
-      image: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-          isUrl: true,
-        },
       },
       price: {
         type: DataTypes.DOUBLE,

@@ -2,46 +2,27 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('menu_items', {
+    await queryInterface.createTable('carts', {
       id: {
         allowNull: false,
         primaryKey: true,
         defaultValue: Sequelize.literal('uuid_generate_v4()'),
         type: Sequelize.UUID,
       },
-      name: {
-        type: Sequelize.STRING,
+      user_id: {
+        type: Sequelize.UUID,
         allowNull: false,
+        references: {
+          key: 'id',
+          model: 'users',
+        },
       },
-      description: {
-        type: Sequelize.STRING,
+      order_id: {
+        type: Sequelize.UUID,
         allowNull: true,
-      },
-      is_veg: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-      },
-      price: {
-        type: Sequelize.DOUBLE,
-        allowNull: false,
-        validate: {
-          isNumeric: true,
-        },
-      },
-      restaurant_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
         references: {
           key: 'id',
-          model: 'restaurants',
-        },
-      },
-      food_category_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          key: 'id',
-          model: 'food_categories',
+          model: 'orders',
         },
       },
       created_at: {
@@ -62,6 +43,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('menu_items');
+    await queryInterface.dropTable('carts');
   },
 };
