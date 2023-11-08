@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.User, {
         foreignKey: 'owner_id',
       });
-      this.hasMany(models.FoodCategory, {
+      this.hasMany(models.MenuItem, {
         foreignKey: 'restaurant_id',
       });
       this.hasMany(models.Rating, {

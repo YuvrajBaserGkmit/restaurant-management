@@ -13,14 +13,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      restaurant_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          key: 'id',
-          model: 'restaurants',
-        },
-      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

@@ -35,6 +35,14 @@ module.exports = {
           isNumeric: true,
         },
       },
+      restaurant_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          key: 'id',
+          model: 'restaurants',
+        },
+      },
       food_category_id: {
         type: Sequelize.UUID,
         allowNull: false,

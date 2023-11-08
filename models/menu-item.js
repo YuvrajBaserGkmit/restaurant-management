@@ -3,6 +3,9 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class MenuItem extends Model {
     static associate(models) {
+      this.belongsTo(models.Restaurant, {
+        foreignKey: 'restaurant_id',
+      });
       this.belongsTo(models.FoodCategory, {
         foreignKey: 'food_category_id',
       });
@@ -34,6 +37,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           isNumeric: true,
+        },
+      },
+      restaurant_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          key: 'id',
+          model: 'restaurants',
         },
       },
       food_category_id: {
