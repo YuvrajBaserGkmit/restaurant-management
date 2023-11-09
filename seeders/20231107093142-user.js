@@ -1,13 +1,16 @@
 'use strict';
 const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcrypt');
+const models = require('../models');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const result = await queryInterface.sequelize.query(
-      `SELECT * FROM roles WHERE title='admin'`,
-    );
+    const result = await models.Role.findOne({
+      where: {
+        title: 'admin',
+      },
+    });
     const email = 'admin@gmail.com';
     const password = await bcrypt.hash('Admin@1234', 10);
     let payload = {
@@ -18,9 +21,7 @@ module.exports = {
         .int({ min: 1000000000, max: 9999999999 })
         .toString(),
       password: password,
-      role_id: result[0][0].id,
-      created_at: new Date(),
-      updated_at: new Date(),
+      role_id: result.id,
     };
     await queryInterface.bulkInsert('users', [payload], {});
   },
