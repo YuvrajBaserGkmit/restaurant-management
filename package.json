@@ -4,8 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "prepare": "husky install"
+    "test": "NODE_ENV=test npx jest --coverage",
+    "prepare": "husky install",
+    "start": "nodemon index.js",
+    "migrate": "npx sequelize-cli db:migrate",
+    "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
+    "seed": "npx sequelize-cli db:seed:all",
+    "seed:undo": "npx sequelize-cli db:seed:undo:all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+git@github.com:YuvrajBaserGkmit/restaurant-management.git"
   },
   "author": "Yuvraj Baser",
   "license": "ISC",
