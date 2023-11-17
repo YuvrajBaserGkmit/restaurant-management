@@ -13,7 +13,7 @@ const deleteRoleSchema = (req, res, next) => {
   const schema = Joi.object({
     permanentDelete: Joi.boolean().label('Permanent Delete'),
   });
-  validateRequest(req, res, next, schema, 'body');
+  validateRequest(req, res, next, schema, 'query');
 };
 
 module.exports = {

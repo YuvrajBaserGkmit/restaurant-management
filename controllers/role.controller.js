@@ -3,8 +3,8 @@ const roleService = require('../services/role.service');
 
 const getAllRoles = async (req, res, next) => {
   try {
-    const { body: payload, query } = req;
-    const response = await roleService.getAllRoles(query);
+    const { query: payload } = req;
+    const response = await roleService.getAllRoles(payload);
     res.data = response;
     next();
   } catch (error) {
@@ -30,8 +30,8 @@ const createRole = async (req, res, next) => {
 
 const getRoleById = async (req, res, next) => {
   try {
-    const { params } = req;
-    const response = await roleService.getRoleById(params);
+    const { params: payload } = req;
+    const response = await roleService.getRoleById(payload);
     res.data = response;
     next();
   } catch (error) {
@@ -41,8 +41,10 @@ const getRoleById = async (req, res, next) => {
 
 const updateRole = async (req, res, next) => {
   try {
-    const { body: payload, params } = req;
-    const response = await roleService.updateRole(params, payload);
+    const { body, params } = req;
+    const payload = { body, params };
+
+    const response = await roleService.updateRole(payload);
     res.data = response;
     next();
   } catch (error) {
@@ -52,8 +54,10 @@ const updateRole = async (req, res, next) => {
 
 const deleteRole = async (req, res, next) => {
   try {
-    const { body: payload, params, query } = req;
-    const response = await roleService.deleteRole(params, query);
+    const { params, query } = req;
+    const payload = { params, query };
+
+    const response = await roleService.deleteRole(payload);
     res.data = response;
     next();
   } catch (error) {

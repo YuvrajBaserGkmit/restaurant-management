@@ -1,8 +1,8 @@
 const models = require('../models');
 
-const getAllRoles = async (query) => {
-  const page = query.page < 1 ? 1 : query.page || 1;
-  const limit = query.limit || 10;
+const getAllRoles = async (payload) => {
+  const { page, limit } = payload;
+
   const offset = (page - 1) * limit;
 
   const roles = await models.Role.findAll({
@@ -12,7 +12,7 @@ const getAllRoles = async (query) => {
       exclude: ['created_at', 'updated_at', 'deleted_at'],
     },
   });
-  if (roles.length === 0) {
+  if (!roles.length) {
     const error = Error('no content available');
     error.statusCode = 204;
     throw error;
@@ -21,9 +21,11 @@ const getAllRoles = async (query) => {
 };
 
 const createRole = async (payload) => {
+  const { title } = payload;
+
   const roleExists = await models.Role.findOne({
     where: {
-      title: payload.title,
+      title: title,
     },
   });
   if (roleExists) {
@@ -33,7 +35,7 @@ const createRole = async (payload) => {
   }
   const isSoftDeleted = await models.Role.findOne({
     where: {
-      title: payload.title,
+      title: title,
     },
     paranoid: false,
   });
@@ -41,11 +43,11 @@ const createRole = async (payload) => {
   let role;
   if (isSoftDeleted) {
     await models.Role.restore({
-      where: { title: payload.title },
+      where: { title: title },
     });
     role = await models.Role.findOne({
       where: {
-        title: payload.title,
+        title: title,
       },
     });
   } else {
@@ -54,8 +56,10 @@ const createRole = async (payload) => {
   return role;
 };
 
-const getRoleById = async (params) => {
-  const roleExists = await models.Role.findByPk(params.id, {
+const getRoleById = async (payload) => {
+  const { id } = payload;
+
+  const roleExists = await models.Role.findByPk(id, {
     attributes: {
       exclude: ['created_at', 'updated_at', 'deleted_at'],
     },
@@ -69,8 +73,10 @@ const getRoleById = async (params) => {
   }
 };
 
-const updateRole = async (params, payload) => {
-  const roleExists = await models.Role.findByPk(params.id, {});
+const updateRole = async (payload) => {
+  const { id } = payload.params;
+
+  const roleExists = await models.Role.findByPk(id, {});
   if (!roleExists) {
     const error = Error('role not exists');
     error.statusCode = 404;
@@ -78,38 +84,41 @@ const updateRole = async (params, payload) => {
   } else {
     await models.Role.update(payload, {
       where: {
-        id: params.id,
+        id: id,
       },
     });
     return 'role updated successfully';
   }
 };
 
-const deleteRole = async (params, query) => {
-  const roleId = params.id;
-  const hardDelete = query.permanentDelete === 'true';
+const deleteRole = async (payload) => {
+  const { permanentDelete } = payload.query;
 
-  const roleExists = await models.Role.findByPk(roleId);
+  const { id } = payload.params;
+  let message = 'role deleted successfully';
+
+  const roleExists = await models.Role.findByPk(id);
   if (!roleExists) {
     const error = Error('role not exists');
     error.statusCode = 404;
     throw error;
   } else {
-    if (hardDelete) {
+    if (permanentDelete) {
       await models.Role.destroy({
         where: {
-          id: roleId,
+          id: id,
         },
         force: true,
       });
+      message = 'role deleted permanently';
     } else {
       await models.Role.destroy({
         where: {
-          id: roleId,
+          id: id,
         },
       });
     }
-    return 'role deleted successfully';
+    return message;
   }
 };
 

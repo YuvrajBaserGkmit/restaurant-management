@@ -3,8 +3,8 @@ const { validateRequest } = require('../helpers/validate.helper');
 
 const limitPageSchema = async (req, res, next) => {
   const schema = Joi.object({
-    page: Joi.number().positive().allow(0),
-    limit: Joi.number().positive().min(1),
+    page: Joi.number().positive().default(1),
+    limit: Joi.number().positive().min(1).default(10),
   });
   validateRequest(req, res, next, schema, 'query');
 };
