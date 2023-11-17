@@ -28,7 +28,7 @@ const checkAccessToken = async (req, res, next) => {
     next();
   } catch (error) {
     res.statusCode = 401;
-    if (res.message === 'User Not found') res.statusCode = 404;
+    if (error.message === 'User Not found') res.statusCode = 404;
     commonErrorHandler(req, res, error.message, res.statusCode, error);
   }
 };
