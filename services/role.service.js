@@ -74,7 +74,7 @@ const getRoleById = async (payload) => {
 };
 
 const updateRole = async (payload) => {
-  const { id } = payload.params;
+  const { id } = payload;
 
   const roleExists = await models.Role.findByPk(id, {});
   if (!roleExists) {
@@ -92,9 +92,7 @@ const updateRole = async (payload) => {
 };
 
 const deleteRole = async (payload) => {
-  const { permanentDelete } = payload.query;
-
-  const { id } = payload.params;
+  const { permanentDelete, id } = payload;
   let message = 'role deleted successfully';
 
   const roleExists = await models.Role.findByPk(id);
