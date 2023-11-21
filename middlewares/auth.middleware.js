@@ -35,7 +35,7 @@ const checkAccessToken = async (req, res, next) => {
 
 const checkRefreshToken = async (req, res, next) => {
   try {
-    const { refreshToken } = req;
+    const { refreshToken } = req.body;
     const decodedRefreshToken = jwt.verify(
       refreshToken,
       process.env.SECRET_KEY_REFRESH_TOKEN,
@@ -43,14 +43,18 @@ const checkRefreshToken = async (req, res, next) => {
 
     const user = await models.User.findOne({
       where: {
-        id: decodedRefreshToken.id,
+        id: decodedRefreshToken.userId,
       },
     });
     if (!user) {
-      throw new Error('User Not found');
+      const error = new Error('User Not found');
+      error.statusCode = 404;
+      throw error;
     }
+    req.body.userId = user.id;
     next();
   } catch (error) {
+    res.statusCode = 401;
     commonErrorHandler(req, res, error.message, res.statusCode, error);
   }
 };

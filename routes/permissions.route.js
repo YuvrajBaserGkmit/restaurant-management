@@ -50,7 +50,7 @@ router.delete(
   authMiddleware.checkAccessToken,
   authMiddleware.checkPermission('delete_permission'),
   commonValidator.idSchema,
-  permissionValidator.deletePermissionSchema,
+  commonValidator.deleteSchema,
   permissionController.deletePermission,
   genericResponse.sendResponse,
 );

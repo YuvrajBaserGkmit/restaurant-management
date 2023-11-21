@@ -120,10 +120,112 @@ const deleteRole = async (payload) => {
   }
 };
 
+const assignPermissionsToRole = async (payload) => {
+  const { id, permissions } = payload;
+
+  const roleExists = await models.Role.findByPk(id);
+  if (!roleExists) {
+    const error = Error('role not exists');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const allPermissions = await models.Permission.findAll({
+    where: {
+      title: permissions,
+    },
+    attributes: ['id', 'title'],
+  });
+
+  let addedPermissions = [];
+
+  for (const permission of permissions) {
+    const foundPermission = allPermissions.find((p) => p.title === permission);
+    if (foundPermission) {
+      await models.RolePermission.create({
+        role_id: id,
+        permission_id: foundPermission.id,
+      });
+      addedPermissions.push(foundPermission.title);
+    } else {
+      const error = Error(`${permission} permission not exists`);
+      error.statusCode = 404;
+      throw error;
+    }
+  }
+
+  const rolePermissions = {
+    role: roleExists.title,
+    permissions: addedPermissions,
+  };
+
+  return rolePermissions;
+};
+
+const removePermissionFromRole = async (payload) => {
+  const { permanentDelete, roleId, permissionId } = payload;
+  let message;
+
+  const roleExists = await models.Role.findByPk(roleId);
+  if (!roleExists) {
+    const error = Error('role not exists');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const permissionExists = await models.Permission.findByPk(permissionId);
+  if (!permissionExists) {
+    const error = Error('permission not exists');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const roleContainsPermission = await models.RolePermission.findOne({
+    where: {
+      role_id: roleId,
+      permission_id: permissionId,
+    },
+  });
+  if (!roleContainsPermission) {
+    const error = Error(
+      `${roleExists.title} role already don't have ${permissionExists.title} permission`,
+    );
+    error.statusCode = 422;
+    throw error;
+  }
+
+  let isDeleted;
+  if (permanentDelete) {
+    isDeleted = await models.RolePermission.destroy({
+      where: {
+        role_id: roleId,
+        permission_id: permissionId,
+      },
+      force: true,
+    });
+  } else {
+    isDeleted = await models.RolePermission.destroy({
+      where: {
+        role_id: roleId,
+        permission_id: permissionId,
+      },
+    });
+  }
+  if (isDeleted) {
+    message = `${permissionExists.title} permission from ${
+      roleExists.title
+    } role deleted${permanentDelete ? ' permanently' : ''}`;
+  }
+
+  return message;
+};
+
 module.exports = {
   getAllRoles,
   createRole,
   getRoleById,
   updateRole,
   deleteRole,
+  assignPermissionsToRole,
+  removePermissionFromRole,
 };
