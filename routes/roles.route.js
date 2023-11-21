@@ -50,8 +50,28 @@ router.delete(
   authMiddleware.checkAccessToken,
   authMiddleware.checkPermission('delete_role'),
   commonValidator.idSchema,
-  roleValidator.deleteRoleSchema,
+  commonValidator.deleteSchema,
   roleController.deleteRole,
+  genericResponse.sendResponse,
+);
+
+router.post(
+  '/:id/permissions',
+  authMiddleware.checkAccessToken,
+  authMiddleware.checkPermission('assign_permissions_to_role'),
+  commonValidator.idSchema,
+  roleValidator.permissionsSchema,
+  roleController.assignPermissionsToRole,
+  genericResponse.sendResponse,
+);
+
+router.delete(
+  '/:roleId/permissions/:permissionId',
+  authMiddleware.checkAccessToken,
+  authMiddleware.checkPermission('remove_permission_from_role'),
+  commonValidator.deleteSchema,
+  roleValidator.roleIdPermissionIdSchema,
+  roleController.removePermissionFromRole,
   genericResponse.sendResponse,
 );
 

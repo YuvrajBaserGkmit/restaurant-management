@@ -84,6 +84,9 @@ module.exports = {
         { title: 'read_payment' },
         { title: 'update_payment' },
         { title: 'delete_payment' },
+
+        { title: 'assign_permissions_to_role' },
+        { title: 'remove_permission_from_role' },
       ],
       { returning: true },
     );
