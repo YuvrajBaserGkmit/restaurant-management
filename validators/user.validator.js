@@ -29,6 +29,4 @@ const createUserSchema = (req, res, next) => {
 
 module.exports = {
   createUserSchema,
-  loginUserSchema,
-  refreshTokenSchema,
 };
