@@ -81,10 +81,47 @@ const deleteRole = async (req, res, next) => {
   }
 };
 
+const assignPermissionsToRole = async (req, res, next) => {
+  try {
+    const { body, params } = req;
+    const payload = { ...body, ...params };
+
+    const response = await roleService.assignPermissionsToRole(payload);
+    res.data = response;
+    res.statusCode = 201;
+    next();
+  } catch (error) {
+    let message = error.message;
+    if (error.errors) {
+      message = error.errors[0].message;
+    }
+    commonErrorHandler(req, res, message, error.statusCode, error);
+  }
+};
+
+const removePermissionFromRole = async (req, res, next) => {
+  try {
+    const { params, query } = req;
+    const payload = { ...params, ...query };
+
+    const response = await roleService.removePermissionFromRole(payload);
+    res.data = response;
+    next();
+  } catch (error) {
+    let message = error.message;
+    if (error.errors) {
+      message = error.errors[0].message;
+    }
+    commonErrorHandler(req, res, message, error.statusCode, error);
+  }
+};
+
 module.exports = {
   getAllRoles,
   createRole,
   getRoleById,
   updateRole,
   deleteRole,
+  assignPermissionsToRole,
+  removePermissionFromRole,
 };
