@@ -9,14 +9,31 @@ const createRoleSchema = (req, res, next) => {
   validateRequest(req, res, next, schema, 'body');
 };
 
-const deleteRoleSchema = (req, res, next) => {
+const permissionsSchema = (req, res, next) => {
   const schema = Joi.object({
-    permanentDelete: Joi.boolean().label('Permanent Delete'),
+    permissions: Joi.array().items(Joi.string()),
   });
-  validateRequest(req, res, next, schema, 'query');
+  validateRequest(req, res, next, schema, 'body');
+};
+
+const roleIdPermissionIdSchema = (req, res, next) => {
+  const schema = Joi.object({
+    roleId: Joi.string()
+      .guid({
+        version: ['uuidv4'],
+      })
+      .required(),
+    permissionId: Joi.string()
+      .guid({
+        version: ['uuidv4'],
+      })
+      .required(),
+  });
+  validateRequest(req, res, next, schema, 'params');
 };
 
 module.exports = {
   createRoleSchema,
-  deleteRoleSchema,
+  permissionsSchema,
+  roleIdPermissionIdSchema,
 };
