@@ -14,9 +14,7 @@ const {
 const loginUser = async (payload) => {
   const { email, password } = payload;
   const userExist = await models.User.findOne({
-    where: {
-      email: email,
-    },
+    where: { email },
   });
   if (!userExist) {
     const error = Error(`user with email ${email} not exists`);
