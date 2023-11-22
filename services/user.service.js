@@ -6,14 +6,14 @@ const getAllUsers = async (payload) => {
 
   const offset = (page - 1) * limit;
 
-  const users = await models.User.findAll({
+  const users = await models.User.findAndCountAll({
     offset: offset,
     limit: limit,
     attributes: {
       exclude: ['password', 'created_at', 'updated_at', 'deleted_at'],
     },
   });
-  if (!users.length) {
+  if (!users.rows.length) {
     const error = new Error('No content available');
     error.statusCode = 204;
     throw error;
@@ -22,58 +22,38 @@ const getAllUsers = async (payload) => {
 };
 
 const createUser = async (payload) => {
-  const { id, firstName, lastName, phoneNumber, email, password, role } =
-    payload;
+  const { firstName, lastName, phoneNumber, email, password, roleId } = payload;
 
-  const userEmailExist = await models.User.findOne({
-    where: {
-      email: email,
-    },
-  });
-
+  const userEmailExist = await models.User.findOne({ where: { email } });
   if (userEmailExist) {
     const error = new Error('User already exists');
     error.statusCode = 409;
     throw error;
   }
 
-  if (role === 'admin') {
+  const roleExist = await models.Role.findByPk(roleId);
+  if (!roleExist) {
+    const error = new Error('Role does not exist');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (roleExist.title === 'admin') {
     const error = Error('admin role not allowed');
     error.statusCode = 422;
     throw error;
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const roleExist = await models.Role.findOne({
-    where: {
-      title: role,
-    },
-  });
-
-  if (!roleExist) {
-    const error = new Error('Role does not exist');
-    error.statusCode = 422;
-    throw error;
-  }
-
   const isSoftDeleted = await models.User.findOne({
-    where: {
-      email: email,
-    },
+    where: { email },
     paranoid: false,
   });
 
+  const hashedPassword = await bcrypt.hash(password, 10);
   let user;
+
   if (isSoftDeleted) {
-    await models.User.restore({
-      where: { email: email },
-    });
-    user = await models.User.findOne({
-      where: {
-        email: email,
-      },
-    });
+    await models.User.restore({ where: { email } });
+    user = await models.User.findOne({ where: { email } });
   } else {
     const userPayload = {
       first_name: firstName,
@@ -81,11 +61,10 @@ const createUser = async (payload) => {
       phone_number: phoneNumber,
       email: email,
       password: hashedPassword,
-      role_id: roleExist.id,
+      role_id: roleId,
     };
     user = await models.User.create(userPayload);
   }
-  user.role = roleExist.title;
 
   return user;
 };
@@ -109,7 +88,7 @@ const getUserById = async (payload) => {
 };
 
 const updateUser = async (payload) => {
-  const { id, firstName, lastName, phoneNumber, email, password, role } =
+  const { id, firstName, lastName, phoneNumber, email, password, roleId } =
     payload;
 
   const userExists = await models.User.findByPk(id);
@@ -119,7 +98,13 @@ const updateUser = async (payload) => {
     throw error;
   }
 
-  if (role === 'admin') {
+  const roleExist = await models.Role.findByPk(roleId);
+  if (!roleExist) {
+    const error = new Error('Role does not exist');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (roleExist.title === 'admin') {
     const error = Error('admin role not allowed');
     error.statusCode = 422;
     throw error;
@@ -127,18 +112,6 @@ const updateUser = async (payload) => {
 
   if (userExists.email !== email) {
     const error = Error('email can not be updated');
-    error.statusCode = 422;
-    throw error;
-  }
-
-  const roleExist = await models.Role.findOne({
-    where: {
-      title: role,
-    },
-  });
-
-  if (!roleExist) {
-    const error = new Error('Role does not exist');
     error.statusCode = 422;
     throw error;
   }
@@ -153,14 +126,10 @@ const updateUser = async (payload) => {
     last_name: lastName,
     phone_number: phoneNumber,
     password: newHashedPassword,
-    role_id: roleExist.id,
+    role_id: roleId,
   };
 
-  await models.User.update(userUpdatePayload, {
-    where: {
-      id: id,
-    },
-  });
+  await models.User.update(userUpdatePayload, { where: { id } });
   return 'User updated successfully';
 };
 
@@ -175,19 +144,10 @@ const deleteUser = async (payload) => {
     throw error;
   } else {
     if (permanentDelete) {
-      await models.User.destroy({
-        where: {
-          id: id,
-        },
-        force: true,
-      });
+      await models.User.destroy({ where: { id }, force: true });
       message = 'User deleted permanently';
     } else {
-      await models.User.destroy({
-        where: {
-          id: id,
-        },
-      });
+      await models.User.destroy({ where: { id } });
     }
     return message;
   }

@@ -42,6 +42,7 @@ router.put(
   authMiddleware.checkAccessToken,
   authMiddleware.checkPermission('update_user'),
   commonValidator.idSchema,
+  userValidator.createUserSchema,
   userController.updateUser,
   genericResponse.sendResponse,
 );

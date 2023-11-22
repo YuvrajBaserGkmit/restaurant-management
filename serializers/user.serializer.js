@@ -1,7 +1,7 @@
 const serializeUsers = (req, res, next) => {
-  const data = res.data || null;
+  const { rows } = res.data || null;
   let response = [];
-  for (const user of data) {
+  for (const user of rows) {
     response.push({
       id: user.id,
       firstName: user.first_name,
@@ -9,10 +9,9 @@ const serializeUsers = (req, res, next) => {
       email: user.email,
       phoneNumber: user.phone_number,
       roleId: user.role_id,
-      role: data.role,
     });
   }
-  res.data = response;
+  res.data.rows = response;
   next();
 };
 
