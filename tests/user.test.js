@@ -4,19 +4,7 @@ const { sequelize } = require('../models');
 
 const app = require('../app');
 
-let userPayload = {
-  firstName: faker.person.firstName(),
-  lastName: faker.person.lastName(),
-  email: faker.internet.email().toLowerCase(),
-  phoneNumber: faker.number
-    .int({ min: 1000000000, max: 9999999999 })
-    .toString(),
-  password: faker.internet.password(),
-  role: 'customer',
-};
-
-let customerEmails = [];
-customerEmails.push(userPayload.email);
+let userPayload;
 let adminEmail = 'admin@gmail.com';
 let adminPassword = 'Admin@1234';
 
@@ -24,15 +12,12 @@ let adminAccessToken;
 let userAccessToken;
 let userId;
 
+let usersToBeDeleted = [];
+
 beforeAll(async () => {
   const admin = await sequelize.models.User.findOne({
-    where: {
-      email: adminEmail,
-    },
+    where: { email: adminEmail },
   });
-
-  const user = await request(app).post('/api/users').send(userPayload);
-
   if (admin) {
     const resp = await request(app)
       .post('/api/auth/login')
@@ -41,6 +26,23 @@ beforeAll(async () => {
       resp.statusCode === 200 ? resp.body.data.accessToken : null;
   }
 
+  const title = 'customer';
+  const role = await sequelize.models.Role.findOne({ where: { title } });
+
+  userPayload = {
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email().toLowerCase(),
+    phoneNumber: faker.number
+      .int({ min: 1000000000, max: 9999999999 })
+      .toString(),
+    password: faker.internet.password(),
+    roleId: role.id,
+  };
+
+  const user = await request(app).post('/api/users').send(userPayload);
+  usersToBeDeleted.push(user.body.data.email);
+  userId = user.body.data.id;
   if (user.body.statusCode === 201) {
     const resp = await request(app)
       .post('/api/auth/login')
@@ -96,14 +98,13 @@ describe('TEST GET api/users API', () => {
 describe('TEST POST api/users API', () => {
   it('should create a user', async () => {
     userPayload.email = faker.internet.email().toLowerCase();
-    customerEmails.push(userPayload.email);
+    usersToBeDeleted.push(userPayload.email);
 
     const res = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .send(userPayload);
 
-    userId = res.body.data.id;
     expect(res.body.message).toEqual('Success');
     expect(res.statusCode).toBe(201);
   });
@@ -113,17 +114,76 @@ describe('TEST POST api/users API', () => {
       .post('/api/users')
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
-        firstNames: faker.person.firstName(),
+        firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
         email: faker.internet.email().toLowerCase(),
         phoneNumber: faker.number
           .int({ min: 1000000000, max: 9999999999 })
           .toString(),
         password: faker.internet.password(),
-        role: 'customer',
       });
-    expect(res.body.message).toEqual('First Name is required');
+    expect(res.body.message).toEqual('Role Id is required');
     expect(res.statusCode).toBe(400);
+  });
+
+  it('should check if role exists or not', async () => {
+    roleId = '1ab495de-7993-4812-9f83-ab06fc57908a';
+
+    const payload = {
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email().toLowerCase(),
+      phoneNumber: faker.number
+        .int({ min: 1000000000, max: 9999999999 })
+        .toString(),
+      password: faker.internet.password(),
+      roleId: roleId,
+    };
+    usersToBeDeleted.push(payload.email);
+
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(payload);
+
+    expect(res.body.message).toEqual('Role does not exist');
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('should check if user already', async () => {
+    userPayload.email = adminEmail;
+
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(userPayload);
+
+    expect(res.body.message).toEqual('User already exists');
+    expect(res.statusCode).toBe(409);
+  });
+
+  it('should not allow admin role', async () => {
+    const title = 'admin';
+    const role = await sequelize.models.Role.findOne({ where: { title } });
+
+    const payload = {
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email().toLowerCase(),
+      phoneNumber: faker.number
+        .int({ min: 1000000000, max: 9999999999 })
+        .toString(),
+      password: faker.internet.password(),
+      roleId: role.id,
+    };
+
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(payload);
+
+    expect(res.body.message).toEqual('admin role not allowed');
+    expect(res.statusCode).toBe(422);
   });
 });
 
@@ -161,14 +221,10 @@ describe('TEST GET api/users/:userId API', () => {
   });
 
   it('should check if the request resource is present or not', async () => {
-    await sequelize.models.User.destroy({
-      where: {
-        id: userId,
-      },
-      force: true,
-    });
+    const id = 'f5ab3a7c-802e-4ff5-98e9-f84b6194e1fb';
+
     const res = await request(app)
-      .get(`/api/users/${userId}`)
+      .get(`/api/users/${id}`)
       .set('Authorization', `Bearer ${adminAccessToken}`);
     expect(res.body.message).toEqual('User not exists');
     expect(res.statusCode).toEqual(404);
@@ -177,11 +233,13 @@ describe('TEST GET api/users/:userId API', () => {
 
 describe('TEST PUT api/users/:userId API', () => {
   it('should update user by id', async () => {
+    userPayload.email = faker.internet.email().toLowerCase();
+    usersToBeDeleted.push(userPayload.email);
+
     const resp = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .send(userPayload);
-    customerEmails.push(userPayload.email);
 
     userId = resp.body.data.id;
     const res = await request(app)
@@ -195,7 +253,8 @@ describe('TEST PUT api/users/:userId API', () => {
   it('should not allow invalid request', async () => {
     const res = await request(app)
       .put(`/api/users/:${userId}`) // : fails the uuid validation
-      .set('Authorization', `Bearer ${adminAccessToken}`);
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(userPayload);
     expect(res.body.message).toEqual('id must be a valid GUID');
     expect(res.statusCode).toEqual(400);
   });
@@ -209,7 +268,8 @@ describe('TEST PUT api/users/:userId API', () => {
   it(`should not allow access if the user don't have required permission`, async () => {
     const res = await request(app)
       .put(`/api/users/${userId}`)
-      .set('Authorization', `Bearer ${userAccessToken}`);
+      .set('Authorization', `Bearer ${userAccessToken}`)
+      .send(userPayload);
     expect(res.body.message).toEqual(
       `you don't have required permission to access this api endpoint`,
     );
@@ -217,28 +277,48 @@ describe('TEST PUT api/users/:userId API', () => {
   });
 
   it('should check if the request resource is present or not', async () => {
-    await sequelize.models.User.destroy({
-      where: {
-        id: userId,
-      },
-      force: true,
-    });
+    const id = 'f5ab3a7c-802e-4ff5-98e9-f84b6194e1fb';
+
     const res = await request(app)
-      .put(`/api/users/${userId}`)
+      .put(`/api/users/${id}`)
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .send(userPayload);
     expect(res.body.message).toEqual('User not exists');
     expect(res.statusCode).toEqual(404);
   });
+
+  it('should not allow admin role', async () => {
+    const title = 'admin';
+    const role = await sequelize.models.Role.findOne({ where: { title } });
+
+    const payload = {
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email().toLowerCase(),
+      phoneNumber: faker.number
+        .int({ min: 1000000000, max: 9999999999 })
+        .toString(),
+      password: faker.internet.password(),
+      roleId: role.id,
+    };
+
+    const res = await request(app)
+      .put(`/api/users/${userId}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(payload);
+
+    expect(res.body.message).toEqual('admin role not allowed');
+    expect(res.statusCode).toBe(422);
+  });
 });
 
 describe('TEST DELETE api/users/:userId API', () => {
   it('should soft delete user by id', async () => {
+    userPayload.email = faker.internet.email().toLowerCase();
     const resp = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .send(userPayload);
-    customerEmails.push(userPayload.email);
 
     userId = resp.body.data.id;
 
@@ -250,11 +330,11 @@ describe('TEST DELETE api/users/:userId API', () => {
   });
 
   it('should hard delete user by id', async () => {
+    userPayload.email = faker.internet.email().toLowerCase();
     const resp = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .send(userPayload);
-    customerEmails.push(userPayload.email);
 
     userId = resp.body.data.id;
 
@@ -291,7 +371,7 @@ describe('TEST DELETE api/users/:userId API', () => {
   });
 
   it('should check if the request resource is present or not', async () => {
-    await sequelize.models.User.destroy({
+    const test = await sequelize.models.User.destroy({
       where: {
         id: userId,
       },
@@ -306,10 +386,9 @@ describe('TEST DELETE api/users/:userId API', () => {
 });
 
 afterAll(async () => {
-  customerEmails.push(userPayload.email);
   await sequelize.models.User.destroy({
     where: {
-      email: customerEmails,
+      email: usersToBeDeleted,
     },
     force: true,
   });
