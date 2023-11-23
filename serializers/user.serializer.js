@@ -1,6 +1,9 @@
-const serializeUsers = (req, res, next) => {
-  const { rows } = res.data || null;
+const serializeUser = (req, res, next) => {
+  let { rows } = res.data;
   let response = [];
+  if (!rows) {
+    rows = [res.data];
+  }
   for (const user of rows) {
     response.push({
       id: user.id,
@@ -11,26 +14,14 @@ const serializeUsers = (req, res, next) => {
       roleId: user.role_id,
     });
   }
-  res.data.rows = response;
-  next();
-};
-
-const serializeUser = (req, res, next) => {
-  const data = res.data || null;
-  const response = {
-    id: data.id,
-    firstName: data.first_name,
-    lastName: data.last_name,
-    email: data.email,
-    phoneNumber: data.phone_number,
-    roleId: data.role_id,
-    role: data.role,
-  };
-  res.data = response;
+  if (!res.data.rows) {
+    res.data = response;
+  } else {
+    res.data.rows = response;
+  }
   next();
 };
 
 module.exports = {
-  serializeUsers,
   serializeUser,
 };

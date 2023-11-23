@@ -15,7 +15,7 @@ router.get(
   authMiddleware.checkPermission('read_all_users'),
   commonValidator.limitPageSchema,
   userController.getAllUsers,
-  userSerializer.serializeUsers,
+  userSerializer.serializeUser,
   genericResponse.sendResponse,
 );
 
