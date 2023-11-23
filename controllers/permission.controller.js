@@ -8,10 +8,7 @@ const getAllPermissions = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -24,10 +21,7 @@ const createPermission = async (req, res, next) => {
     res.statusCode = 201;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -39,10 +33,7 @@ const getPermissionById = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -56,10 +47,7 @@ const updatePermission = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -73,10 +61,7 @@ const deletePermission = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };

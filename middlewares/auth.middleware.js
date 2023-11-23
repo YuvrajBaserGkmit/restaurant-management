@@ -54,8 +54,8 @@ const checkRefreshToken = async (req, res, next) => {
     req.body.userId = user.id;
     next();
   } catch (error) {
-    res.statusCode = 401;
-    commonErrorHandler(req, res, error.message, res.statusCode, error);
+    error.statusCode = error.statusCode ? error.statusCode : 401;
+    commonErrorHandler(req, res, error.message, error.statusCode, error);
   }
 };
 

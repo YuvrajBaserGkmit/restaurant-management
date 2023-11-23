@@ -8,10 +8,7 @@ const getAllUsers = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -24,10 +21,7 @@ const createUser = async (req, res, next) => {
     res.statusCode = 201;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -39,10 +33,7 @@ const getUserById = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -56,10 +47,7 @@ const updateUser = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -73,10 +61,7 @@ const deleteUser = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };

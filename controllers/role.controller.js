@@ -8,10 +8,7 @@ const getAllRoles = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -24,10 +21,7 @@ const createRole = async (req, res, next) => {
     res.statusCode = 201;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -39,10 +33,7 @@ const getRoleById = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -56,10 +47,7 @@ const updateRole = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -73,10 +61,7 @@ const deleteRole = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -91,10 +76,7 @@ const assignPermissionsToRole = async (req, res, next) => {
     res.statusCode = 201;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
@@ -108,10 +90,7 @@ const removePermissionFromRole = async (req, res, next) => {
     res.data = response;
     next();
   } catch (error) {
-    let message = error.message;
-    if (error.errors) {
-      message = error.errors[0].message;
-    }
+    let message = error.errors ? error.errors[0].message : error.message;
     commonErrorHandler(req, res, message, error.statusCode, error);
   }
 };
