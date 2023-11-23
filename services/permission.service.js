@@ -5,7 +5,7 @@ const getAllPermissions = async (payload) => {
 
   const offset = (page - 1) * limit;
 
-  const permissions = await models.Permission.findAll({
+  const permissions = await models.Permission.findAndCountAll({
     offset: offset,
     limit: limit,
     attributes: {
@@ -13,7 +13,7 @@ const getAllPermissions = async (payload) => {
     },
   });
 
-  if (!permissions.length) {
+  if (!permissions.rows.length) {
     const error = new Error('no content available');
     error.statusCode = 204;
     throw error;
@@ -26,11 +26,8 @@ const createPermission = async (payload) => {
   const { title } = payload;
 
   const permissionExists = await models.Permission.findOne({
-    where: {
-      title: title,
-    },
+    where: { title },
   });
-
   if (permissionExists) {
     const error = new Error('permission already exists');
     error.statusCode = 409;
@@ -38,22 +35,14 @@ const createPermission = async (payload) => {
   }
 
   const isSoftDeleted = await models.Permission.findOne({
-    where: {
-      title: title,
-    },
+    where: { title },
     paranoid: false,
   });
 
   let permission;
   if (isSoftDeleted) {
-    await models.Permission.restore({
-      where: { title: title },
-    });
-    permission = await models.Permission.findOne({
-      where: {
-        title: title,
-      },
-    });
+    await models.Permission.restore({ where: { title } });
+    permission = await models.Permission.findOne({ where: { title } });
   } else {
     permission = await models.Permission.create(payload);
   }
@@ -82,18 +71,13 @@ const getPermissionById = async (payload) => {
 const updatePermission = async (payload) => {
   const { id } = payload;
 
-  const permissionExists = await models.Permission.findByPk(id, {});
-
+  const permissionExists = await models.Permission.findByPk(id);
   if (!permissionExists) {
     const error = new Error('permission not exists');
     error.statusCode = 404;
     throw error;
   } else {
-    await models.Permission.update(payload, {
-      where: {
-        id: id,
-      },
-    });
+    await models.Permission.update(payload, { where: { id } });
     return 'permission updated successfully';
   }
 };
@@ -110,19 +94,10 @@ const deletePermission = async (payload) => {
     throw error;
   } else {
     if (permanentDelete) {
-      await models.Permission.destroy({
-        where: {
-          id: id,
-        },
-        force: true,
-      });
+      await models.Permission.destroy({ where: { id }, force: true });
       message = 'permission deleted permanently';
     } else {
-      await models.Permission.destroy({
-        where: {
-          id: id,
-        },
-      });
+      await models.Permission.destroy({ where: { id } });
     }
     return message;
   }
