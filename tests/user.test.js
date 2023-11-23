@@ -127,7 +127,7 @@ describe('TEST POST api/users API', () => {
   });
 
   it('should check if role exists or not', async () => {
-    roleId = '1ab495de-7993-4812-9f83-ab06fc57908a';
+    const roleId = '1ab495de-7993-4812-9f83-ab06fc57908a';
 
     const payload = {
       firstName: faker.person.firstName(),
@@ -355,7 +355,7 @@ describe('TEST DELETE api/users/:userId API', () => {
   });
 
   it('should not allow access to unauthorized user', async () => {
-    const res = await request(app).put(`/api/users/${userId}`);
+    const res = await request(app).delete(`/api/users/${userId}`);
     expect(res.body.message).toEqual('Access denied');
     expect(res.statusCode).toEqual(401);
   });
