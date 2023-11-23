@@ -72,18 +72,18 @@ const createUser = async (payload) => {
 const getUserById = async (payload) => {
   const { id } = payload;
 
-  const userExists = await models.User.findByPk(id, {
+  const user = await models.User.findByPk(id, {
     attributes: {
       exclude: ['password', 'created_at', 'updated_at', 'deleted_at'],
     },
   });
 
-  if (!userExists) {
+  if (!user) {
     const error = new Error('User not exists');
     error.statusCode = 404;
     throw error;
   } else {
-    return userExists;
+    return user;
   }
 };
 

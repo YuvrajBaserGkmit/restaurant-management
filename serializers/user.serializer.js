@@ -15,7 +15,7 @@ const serializeUser = (req, res, next) => {
     });
   }
   if (!res.data.rows) {
-    res.data = response;
+    res.data = response[0];
   } else {
     res.data.rows = response;
   }
