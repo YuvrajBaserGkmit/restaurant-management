@@ -87,6 +87,12 @@ module.exports = {
 
         { title: 'assign_permissions_to_role' },
         { title: 'remove_permission_from_role' },
+
+        { title: 'read_all_addresses' },
+        { title: 'create_address' },
+        { title: 'read_address' },
+        { title: 'update_address' },
+        { title: 'delete_address' },
       ],
       { returning: true },
     );
