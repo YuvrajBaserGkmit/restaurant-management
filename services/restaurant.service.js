@@ -1,3 +1,4 @@
+const { where } = require('sequelize');
 const models = require('../models');
 
 const getAllRestaurants = async (payload) => {
@@ -25,7 +26,7 @@ const getAllRestaurants = async (payload) => {
     addressFilter = {};
   }
 
-  const restaurants = await models.Restaurant.findAll({
+  const restaurants = await models.Restaurant.findAndCountAll({
     offset: offset,
     limit: limit,
     where: nameFilter,
@@ -41,7 +42,7 @@ const getAllRestaurants = async (payload) => {
     },
   });
 
-  if (!restaurants.length) {
+  if (!restaurants.rows.length) {
     const error = Error('no content available');
     error.statusCode = 204;
     throw error;
@@ -53,11 +54,7 @@ const getAllRestaurants = async (payload) => {
 const createRestaurant = async (payload) => {
   const { name, id, address } = payload;
 
-  const restaurantExists = await models.Restaurant.findOne({
-    where: {
-      name: name,
-    },
-  });
+  const restaurantExists = await models.Restaurant.findOne({ where: { name } });
   if (restaurantExists) {
     const error = Error('Restaurant already exists');
     error.statusCode = 409;
@@ -68,22 +65,14 @@ const createRestaurant = async (payload) => {
   const createdAddress = await models.Address.create(address);
 
   const isSoftDeleted = await models.Restaurant.findOne({
-    where: {
-      name: name,
-    },
+    where: { name },
     paranoid: false,
   });
 
   let restaurant;
   if (isSoftDeleted) {
-    await models.Restaurant.restore({
-      where: { name: name },
-    });
-    restaurant = await models.Restaurant.findOne({
-      where: {
-        name: name,
-      },
-    });
+    await models.Restaurant.restore({ where: { name: name } });
+    restaurant = await models.Restaurant.findOne({ where: { name } });
   } else {
     const restaurantPayload = {
       name: name,
@@ -156,21 +145,30 @@ const getRestaurantById = async (payload) => {
 };
 
 const updateRestaurant = async (payload) => {
-  const { id } = payload;
+  const { name, id, address } = payload;
 
-  const restaurantExists = await models.Restaurant.findByPk(id, {});
+  const restaurantExists = await models.Restaurant.findOne({ where: { name } });
   if (!restaurantExists) {
-    const error = Error('restaurant not exists');
+    const error = Error('Restaurant not exists');
     error.statusCode = 404;
     throw error;
-  } else {
-    await models.Restaurant.update(payload, {
-      where: {
-        id: id,
-      },
-    });
-    return 'restaurant updated successfully';
   }
+
+  address.pin_code = address.pinCode;
+  const updatedAddress = await models.Address.update(address, {
+    where: { id: restaurantExists.address_id },
+  });
+
+  const restaurantPayload = {
+    name: name,
+    owner_id: restaurantExists.owner_id,
+    address_id: restaurantExists.address_id,
+  };
+  restaurant = await models.Restaurant.update(restaurantPayload, {
+    where: { id },
+  });
+
+  return 'restaurant updated successfully';
 };
 
 const deleteRestaurant = async (payload) => {
