@@ -5,14 +5,14 @@ const getAllFoodCategories = async (payload) => {
 
   const offset = (page - 1) * limit;
 
-  const foodCategories = await models.FoodCategory.findAll({
+  const foodCategories = await models.FoodCategory.findAndCountAll({
     offset: offset,
     limit: limit,
     attributes: {
       exclude: ['created_at', 'updated_at', 'deleted_at'],
     },
   });
-  if (!foodCategories.length) {
+  if (!foodCategories.rows.length) {
     const error = Error('no content available');
     error.statusCode = 204;
     throw error;
@@ -79,11 +79,7 @@ const updateFoodCategory = async (payload) => {
     error.statusCode = 404;
     throw error;
   } else {
-    await models.FoodCategory.update(payload, {
-      where: {
-        id: id,
-      },
-    });
+    await models.FoodCategory.update(payload, { where: { id } });
     return 'food category updated successfully';
   }
 };
@@ -99,19 +95,10 @@ const deleteFoodCategory = async (payload) => {
     throw error;
   } else {
     if (permanentDelete) {
-      await models.FoodCategory.destroy({
-        where: {
-          id: id,
-        },
-        force: true,
-      });
+      await models.FoodCategory.destroy({ where: { id }, force: true });
       message = 'food category deleted permanently';
     } else {
-      await models.FoodCategory.destroy({
-        where: {
-          id: id,
-        },
-      });
+      await models.FoodCategory.destroy({ where: { id } });
     }
     return message;
   }
