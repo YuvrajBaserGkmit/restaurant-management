@@ -4,20 +4,10 @@ const { sequelize } = require('../models');
 
 const app = require('../app');
 
-let payload = {
-  firstName: faker.person.firstName(),
-  lastName: faker.person.lastName(),
-  email: faker.internet.email().toLowerCase(),
-  phoneNumber: faker.number
-    .int({ min: 1000000000, max: 9999999999 })
-    .toString(),
-  password: faker.internet.password(),
-  role: 'customer',
-};
+let payload;
 
 let foodCategoryPayload = {
-  name: 'Appetizers',
-  description: 'Delicious appetizers to start your meal',
+  name: faker.internet.userName(),
 };
 
 const adminEmail = 'admin@gmail.com';
@@ -27,6 +17,20 @@ let customerAccessToken;
 let foodCategoryId;
 
 beforeAll(async () => {
+  const title = 'customer';
+  const role = await sequelize.models.Role.findOne({ where: { title } });
+
+  payload = {
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email().toLowerCase(),
+    phoneNumber: faker.number
+      .int({ min: 1000000000, max: 9999999999 })
+      .toString(),
+    password: faker.internet.password(),
+    roleId: role.id,
+  };
+
   const admin = await sequelize.models.User.findOne({
     where: {
       email: 'admin@gmail.com',
@@ -35,7 +39,6 @@ beforeAll(async () => {
   const customer = await request(app).post('/api/users').send(payload);
 
   if (admin) {
-    // Login and save the admin accessToken
     const resp = await request(app)
       .post('/api/auth/login')
       .send({ email: adminEmail, password: adminPassword });
@@ -43,13 +46,66 @@ beforeAll(async () => {
       resp.statusCode === 200 ? resp.body.data.accessToken : null;
   }
   if (customer.body.statusCode === 201) {
-    // Login and save the customer accessToken
     const resp = await request(app)
       .post('/api/auth/login')
       .send({ email: payload.email, password: payload.password });
     customerAccessToken =
       resp.statusCode === 200 ? resp.body.data.accessToken : null;
   }
+});
+
+describe('TEST POST api/food-categories API', () => {
+  it('should create a food category', async () => {
+    const res = await request(app)
+      .post('/api/food-categories')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(foodCategoryPayload);
+
+    foodCategoryId = res.body.data.id;
+    expect(res.body.message).toEqual('Success');
+    expect(res.statusCode).toBe(201);
+  });
+
+  it('should check if food category already exist or not', async () => {
+    const res = await request(app)
+      .post('/api/food-categories')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(foodCategoryPayload);
+
+    expect(res.body.message).toEqual('food category already exists');
+    expect(res.statusCode).toBe(409);
+  });
+
+  it('should not allow invalid request', async () => {
+    const res = await request(app)
+      .post('/api/food-categories')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send({
+        names: 'Appetizers',
+        description: 'Delicious appetizers to start your meal',
+      });
+    expect(res.body.message).toEqual('Name is required');
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should not allow access to unauthorized user', async () => {
+    const res = await request(app)
+      .post('/api/food-categories')
+      .send(foodCategoryPayload);
+    expect(res.body.message).toEqual('Access denied');
+    expect(res.statusCode).toBe(401);
+  });
+
+  it(`should not allow access if the user don't have required permission`, async () => {
+    const res = await request(app)
+      .post('/api/food-categories')
+      .set('Authorization', `Bearer ${customerAccessToken}`)
+      .send(foodCategoryPayload);
+    expect(res.body.message).toEqual(
+      `you don't have required permission to access this api endpoint`,
+    );
+    expect(res.statusCode).toBe(403);
+  });
 });
 
 describe('TEST GET api/food-categories API', () => {
@@ -94,50 +150,6 @@ describe('TEST GET api/food-categories API', () => {
       `you don't have required permission to access this api endpoint`,
     );
     expect(res.statusCode).toEqual(403);
-  });
-});
-
-describe('TEST POST api/food-categories API', () => {
-  it('should create a food category', async () => {
-    const res = await request(app)
-      .post('/api/food-categories')
-      .set('Authorization', `Bearer ${adminAccessToken}`)
-      .send(foodCategoryPayload);
-
-    foodCategoryId = res.body.data.id;
-    expect(res.body.message).toEqual('Success');
-    expect(res.statusCode).toBe(201);
-  });
-
-  it('should not allow invalid request', async () => {
-    const res = await request(app)
-      .post('/api/food-categories')
-      .set('Authorization', `Bearer ${adminAccessToken}`)
-      .send({
-        names: 'Appetizers',
-        description: 'Delicious appetizers to start your meal',
-      });
-    expect(res.body.message).toEqual('Name is required');
-    expect(res.statusCode).toBe(400);
-  });
-
-  it('should not allow access to unauthorized user', async () => {
-    const res = await request(app)
-      .post('/api/food-categories')
-      .send(foodCategoryPayload);
-    expect(res.body.message).toEqual('Access denied');
-    expect(res.statusCode).toBe(401);
-  });
-
-  it(`should not allow access if the user don't have required permission`, async () => {
-    const res = await request(app)
-      .post('/api/food-categories')
-      .set('Authorization', `Bearer ${customerAccessToken}`)
-      .send(foodCategoryPayload);
-    expect(res.body.message).toEqual(
-      `you don't have required permission to access this api endpoint`,
-    );
-    expect(res.statusCode).toBe(403);
   });
 });
 
@@ -201,7 +213,6 @@ describe('TEST PUT api/food-categories/:foodCategoryId API', () => {
     foodCategoryId = resp.body.data.id;
 
     foodCategoryPayload.name = 'Main Course';
-    foodCategoryPayload.description = 'Delicious main course dishes';
     const res = await request(app)
       .put(`/api/food-categories/${foodCategoryId}`)
       .set('Authorization', `Bearer ${adminAccessToken}`)
